@@ -4,7 +4,7 @@ Net-Monitor (NM) is toolkit for auditing "phone home" behavior of all user and
 system-level processes on Mac OS X Yosemite.
 
 Example data extracted by Net-Monitor is provided for collaborative review
-and analysis via the [Yosemite Phones Home](https://github.com/fix-macosx/yosemite-phones-home)
+and analysis via the [Yosemite Phone Home](https://github.com/fix-macosx/yosemite-phone-home)
 project.
 
 Features include:
