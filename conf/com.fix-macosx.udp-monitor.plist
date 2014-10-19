@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>RunAtLoad</key>
+	<true/>
+        <key>ProcessType</key>
+        <string>Interactive</string>
+	<key>KeepAlive</key>
+	<true/>
+	<key>Label</key>
+	<string>com.fix-macosx.udp-monitor</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/bin/sh</string>
+		<string>-c</string>
+		<string>ifconfig pflog10 create && tcpdump -i pflog10 -s 1500 -n -U -w /var/log/udp-monitor/$(date +"%Y%m%d%S").pcap</string>
+	</array>
+</dict>
+</plist>
