@@ -8,15 +8,17 @@ port_filter_https = 10443        # SSLSplit HTTPS port
 port_filter_ssl   = 10444        # SSLSplit SSL port
 port_filter_tcp   = 10025        # SSLSplit TCP port
 
+if_log = pflog10                 # Our traffic logging interface
+
 rdr on lo0 proto tcp from any to any port {443, 8443} -> $ip_filter port $port_filter_https # HTTPS
 rdr on lo0 proto tcp from any to <net_apple> port $port_apns -> $ip_filter port $port_filter_ssl # APNS
 rdr on lo0 proto tcp -> $ip_filter port $port_filter_tcp
 
 # Log non-TCP packets to Apple that won't hit SSLSplit
-pass out log ! proto tcp from any to <net_apple>
+pass out log (to pflog10) proto { udp, icmp, ipv6-icmp } from any to <net_apple>
 
 # Log DNS (and mDNS) packets
-pass out log proto udp from any to any port 5353
+pass out log (to pflog10) proto udp from any to any port {domain, 5353}
 
 # Pass all TCP to SSLSplit, unless the traffic comes from SSLSplit's _packets group
 pass out route-to (lo0 127.0.0.1) proto tcp group != _packets

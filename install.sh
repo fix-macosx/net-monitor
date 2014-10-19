@@ -21,8 +21,8 @@ echo "Copying /etc/pf.conf to /etc/pf.conf.$now"
 cp /etc/pf.conf /etc/pf.conf.$now || exit 1
 
 echo "Installing new /etc/pf.conf and /etc/pf.anchors/com.fix-macosx"
-install -m 644 pf/pf.conf /etc/pf.conf || exit 1
-install -m 644 pf/com.fix-macosx /etc/pf.anchors/com.fix-macosx || exit 1
+install -m 644 conf/pf/pf.conf /etc/pf.conf || exit 1
+install -m 644 conf/pf/com.fix-macosx /etc/pf.anchors/com.fix-macosx || exit 1
 
 # Enable pf at launch (from http://support.apple.com/kb/HT200259?viewlocale=en_US)
 echo "Enabling pf at boot"
@@ -54,5 +54,15 @@ install -m 644 lib/sslsplit/* /usr/local/lib/sslsplit || exit 1
 install -m 644 conf/com.fix-macosx.sslsplit.plist /Library/LaunchDaemons/ || exit 1
 
 launchctl load /Library/LaunchDaemons/com.fix-macosx.sslsplit.plist || exit 1
+
+# Enable logging of non-TCP traffic
+echo "Enabling pflog-based UDP/ICMP traffic logging"
+
+install -m 700 -d /var/log/udp-monitor
+install -m 644 conf/com.fix-macosx.udp-monitor.plist /Library/LaunchDaemons/ || exit 1
+launchctl load /Library/LaunchDaemons/com.fix-macosx.udp-monitor.plist || exit 1
+
+# Enabling PF
+echo "Enabling PF"
 pfctl -f /etc/pf.conf
 pfctl -e  || exit 1
