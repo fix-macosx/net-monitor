@@ -1,0 +1,16 @@
+table <net_apple> { 17.0.0.0/8 } # Apple's netblock(s)
+port_apns = "5223"               # Apple push notification service
+
+ip_filter = "127.0.0.1"          # IP of the SSLSplit instance
+                                 # Must be on lo0 for this ruleset to function
+
+port_filter_https = 10443        # SSLSplit HTTPS port
+port_filter_ssl   = 10444        # SSLSplit SSL port
+port_filter_tcp   = 10025        # SSLSplit TCP port
+
+rdr on lo0 proto tcp from any to any port {443, 8443} -> $ip_filter port $port_filter_https # HTTPS
+rdr log on lo0 proto tcp from any to <net_apple> port $port_apns -> $ip_filter port $port_filter_ssl # APNS
+rdr on lo0 proto tcp -> $ip_filter port $port_filter_tcp
+
+pass log
+pass out route-to (lo0 127.0.0.1) proto tcp group != _packets

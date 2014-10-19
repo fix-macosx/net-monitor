@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>RunAtLoad</key>
+	<true/>
+        <key>ProcessType</key>
+        <string>Interactive</string>
+	<key>KeepAlive</key>
+	<true/>
+	<key>Label</key>
+	<string>com.fix-macosx.sslsplit</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/usr/local/bin/sslsplit</string>
+		<string>-O</string>
+		<string>-P</string>
+		<string>-k</string>
+		<string>/usr/local/etc/sslsplit/key.pem</string>
+		<string>-c</string>
+		<string>/usr/local/etc/sslsplit/cert.pem</string>
+		<string>-u</string>
+		<string>root</string>
+		<string>-m</string>
+		<string>_packets</string>
+		<string>-F</string>
+		<string>/var/log/sslsplit/%X/%T-%u-%s-%d.log</string>
+		<string>tcp</string>
+		<string>127.0.0.1</string>
+		<string>10025</string>
+		<string>https</string>
+		<string>127.0.0.1</string>
+		<string>10443</string>
+		<string>ssl</string>
+		<string>127.0.0.1</string>
+		<string>10444</string>
+	</array>
+</dict>
+</plist>
