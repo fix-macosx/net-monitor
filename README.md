@@ -29,7 +29,7 @@ very welcome.
 ## Caveats
 
 * NM is intended to be used on a dedicated VM or research installation; it
-overrides default configuration files and interposes itself in TLS network communucations,
+overrides default configuration files and interposes itself in TLS network communications,
 and is *not* currently recommended for day-to-day use.
 * Correlation of sockets, processes, and file system executable paths is imperfect; there
 are cases where connections will be ascribed to the wrong application path.
