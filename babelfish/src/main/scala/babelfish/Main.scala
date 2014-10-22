@@ -27,9 +27,17 @@
 package babelfish
 
 import java.io._
+import java.nio.charset.StandardCharsets
+import java.util.Base64
+import java.util.zip.{DataFormatException, Inflater}
 
 import babelfish.http.HTTP
+import org.bouncycastle.cms.{CMSProcessableByteArray, CMSException, CMSSignedData}
 import scodec.bits._
+
+import coop.plausible.nx.assertNonThrows
+import scala.collection.JavaConverters._
+import scalaz.{-\/, \/-}
 
 object Main extends App {
   /* Read input */
@@ -49,5 +57,22 @@ object Main extends App {
   }
 
   result.left.foreach(msg => println(s"Parse failed: $msg"))
-  result.right.foreach(log => println(s"Parsed $log"))
+  result.right.foreach { rl =>
+    val (_, log) = rl
+    println(s"Parsed $log")
+    log.response.body.toArray
+
+    import common._
+    import common.Compression._
+    import cms.CMS._
+
+
+    val data = for (
+      signedData <- signedData.bytes.complete.decode(log.response.body.toBitVector);
+      decoded <- Base64Codec(Base64Scheme.MIME).complete.decode(signedData._2.toBitVector);
+      decompressed <- zlib.decode(decoded._2.toBitVector)
+    ) yield new String(decompressed._2.toArray, StandardCharsets.UTF_8)
+    data.foreach(d => println(s"Parsed:\n$d"))
+
+  }
 }
