@@ -24,7 +24,7 @@ class StringCodecsTest extends Specification {
 
   "regex parsers" should {
     "roundtrip" in {
-      roundtrip(strings.regex(".*".r), StringValue(charset.encode("Hello, World"), charset))
+      roundtrip(strings.regex(".*".r), "Hello World")
     }
   }
 
