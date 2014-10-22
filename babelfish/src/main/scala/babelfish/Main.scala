@@ -34,10 +34,13 @@ import java.util.zip.{DataFormatException, Inflater}
 import babelfish.http.HTTP
 import org.bouncycastle.cms.{CMSProcessableByteArray, CMSException, CMSSignedData}
 import scodec.bits._
+import scodec.codecs.utf8
 
 import coop.plausible.nx.assertNonThrows
 import scala.collection.JavaConverters._
-import scalaz.{-\/, \/-}
+import scalaz._, Scalaz._
+
+import argonaut._, Argonaut._
 
 object Main extends App {
   /* Read input */
@@ -70,9 +73,11 @@ object Main extends App {
     val data = for (
       signedData <- signedData.bytes.complete.decode(log.response.body.toBitVector);
       decoded <- Base64Codec(Base64Scheme.MIME).complete.decode(signedData._2.toBitVector);
-      decompressed <- zlib.decode(decoded._2.toBitVector)
-    ) yield new String(decompressed._2.toArray, StandardCharsets.UTF_8)
-    data.foreach(d => println(s"Parsed:\n$d"))
+      decompressed <- zlib.decode(decoded._2.toBitVector);
+      jsonString <- utf8.decode(decompressed._2.toBitVector);
+      json <- jsonString._2.parse
+    ) yield json
+    data.foreach(d => println(s"Parsed:\n${d.spaces2}"))
 
   }
 }
