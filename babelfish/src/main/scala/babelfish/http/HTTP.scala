@@ -28,8 +28,10 @@ package babelfish.http
 
 import java.nio.charset.StandardCharsets
 import babelfish.common.{StringCodecs, Codecs}
-import scodec.bits.ByteVector
+import scodec.bits.{BitVector, ByteVector}
 import scodec.codecs._
+
+import scodec.codecs.literals._
 
 /**
  * An HTTP transaction logged by SSLsplit.
@@ -61,7 +63,9 @@ object HTTP {
 
   /** HTTP request/response body */
   private def body (headers: Headers) = vs ~> (headers.contentLength match {
-    case Left(msg) => fail[ByteVector](s"Can't decode request body: $msg")
+    case Left(msg) =>
+      /* Try parsing the HTTP message as if the body is zero-length */
+      bytes(0)
     case Right(length) => bytes(length)
   })
 
