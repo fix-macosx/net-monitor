@@ -26,14 +26,18 @@ object Compression {
 
       val output = new ByteArrayOutputStream(inputBytes.length)
       val buffer = new Array[Byte](inputBytes.length.min(1024))
-      while (!inflater.finished()) {
+      while (!inflater.finished() && !inflater.needsInput()) {
         val n = inflater.inflate(buffer)
         assertNonThrows[IOException](output.write(buffer, 0, n))
       }
 
-      assertNonThrows[Exception](output.close())
+      if (inflater.needsInput()) {
+        assertNonThrows[Exception](output.close())
+        \/-((BitVector.empty, ByteVector(output.toByteArray)))
+      } else {
+        -\/(s"Could not decompress file; data underflow occurred")
+      }
 
-      \/-((BitVector.empty, ByteVector(output.toByteArray)))
     } catch {
       case e:DataFormatException => -\/(s"Decompression failed: ${e.getMessage}")
     }
