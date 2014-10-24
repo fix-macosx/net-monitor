@@ -27,20 +27,15 @@
 package babelfish
 
 import java.io._
-import java.nio.charset.StandardCharsets
-import java.util.Base64
-import java.util.zip.{DataFormatException, Inflater}
 
+import argonaut.Argonaut._
+import argonaut._
 import babelfish.codecs.http.HTTP
-import org.bouncycastle.cms.{CMSProcessableByteArray, CMSException, CMSSignedData}
 import scodec.bits._
 import scodec.codecs.utf8
 
-import coop.plausible.nx.assertNonThrows
-import scala.collection.JavaConverters._
-import scalaz._, Scalaz._
-
-import argonaut._, Argonaut._
+import scalaz.Scalaz._
+import scalaz._
 
 object Main extends App {
   /* Read input */
@@ -65,13 +60,13 @@ object Main extends App {
     println(s"Parsed $log")
     log.response.body.toArray
 
-    import codecs._
-    import cms.CMS._
+    import babelfish.codecs._
+    import babelfish.codecs.CMSSignedDataCodec.syntax._
 
 
     val data = for (
-      signedData <- signedData.bytes.complete.decode(log.response.body.toBitVector);
-      decoded <- base64(Base64Codec.MIME).complete.decode(signedData._2.toBitVector);
+      signedData <- cms.signedData.complete.decode(log.response.body.toBitVector).flatMap(_._2.signedBytes);
+      decoded <- base64(Base64Codec.MIME).complete.decode(BitVector(signedData));
       decompressed <- zlib.decode(decoded._2.toBitVector);
       jsonString <- utf8.decode(decompressed._2.toBitVector);
       json <- jsonString._2.parse

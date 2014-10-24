@@ -26,8 +26,11 @@
 
 package babelfish.codecs
 
+import java.io.IOException
 import java.nio.charset.StandardCharsets
 
+import coop.plausible.nx._
+import org.bouncycastle.cms.{CMSSignedData, CMSException}
 import org.specs2.mutable.Specification
 import scodec.bits.{BitVector, ByteVector}
 import scodec.codecs._
@@ -38,6 +41,21 @@ class CodecsTest extends Specification with CodecSpec {
   "base64 mime" should {
     "roundtrip" in {
       roundtrip(base64(Base64Codec.MIME), ByteVector("Hello, World".getBytes(StandardCharsets.UTF_8)))
+    }
+  }
+
+  "cms.signedData" should {
+    "roundtrip" in {
+      val is = CodecsTest.this.getClass.getResourceAsStream("CMSSignedDataExample")
+      (is must not).beNull
+
+      val signedData = assertNonThrows[CMSException] (new CMSSignedData(is))
+
+      roundtrip(cms.signedData, signedData, { (a:CMSSignedData, b:CMSSignedData) =>
+        assertNonThrows[IOException] {
+          a.toASN1Structure.getEncoded must beEqualTo(b.toASN1Structure.getEncoded)
+        }
+      })
     }
   }
 

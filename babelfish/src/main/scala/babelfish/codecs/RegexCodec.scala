@@ -38,9 +38,16 @@ import scala.util.matching.Regex
 import scalaz.{-\/, \/-, \/}
 
 /**
- * Refer to [[regex]]
+ * Codec that performs regex-based matching on input data. Matching data is consumed until
+ * the regex fails to match, or the input data cannot be decoded using the provided
+ * character set.
+ *
+ * @param regex The regex to be used for parsing -- and when validating a value to be encoded.
+ * @param charset The character set of the input data.
+ *
+ * Syntax extensions to facilitate working with regex codecs are available via [[RegexCodec.syntax]].
  */
-private [codecs] case class RegexCodec (regex: Regex, charset: Charset) extends Codec[String] {
+case class RegexCodec (regex: Regex, charset: Charset) extends Codec[String] {
   /** @inheritdoc */
   override def encode (value: String): \/[String, BitVector] = {
     if (regex.pattern.matcher(value).matches()) {

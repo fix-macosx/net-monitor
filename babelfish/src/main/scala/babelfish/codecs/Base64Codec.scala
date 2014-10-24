@@ -33,8 +33,6 @@ import scodec.bits.{BitVector, ByteVector}
 
 import scalaz.{-\/, \/-, \/}
 
-
-
 /**
  * Supported Base64 Schemes.
  */
@@ -64,7 +62,7 @@ object Base64Codec {
  *
  * @param scheme Base64 encoding scheme.
  */
-private[codecs] case class Base64Codec (scheme: Base64Codec.Scheme) extends Codec[ByteVector] {
+case class Base64Codec (scheme: Base64Codec.Scheme) extends Codec[ByteVector] {
   override def decode (bits: BitVector): \/[String, (BitVector, ByteVector)] = try {
     \/-((BitVector.empty, ByteVector(scheme.newDecoder.decode(bits.toByteArray))))
   } catch {

@@ -29,12 +29,16 @@
 
 package babelfish
 
+import java.io.{IOException, ByteArrayOutputStream}
 import java.nio.charset.Charset
 
+import coop.plausible.nx._
+import org.bouncycastle.cms.CMSSignedData
 import scodec.Codec
 import scodec.bits.ByteVector
 
 import scala.util.matching.Regex
+import scalaz.{-\/, \/-, \/}
 
 /**
  * Codec Definitions.
@@ -79,4 +83,16 @@ package object codecs {
    * Codec that performs zlib-based compression and decompression of all available input.
    */
   def zlib: Codec[ByteVector] = ZlibCodec
+
+  /**
+   * Codecs supporting Cryptographic Message Syntax
+   */
+  object cms {
+    /**
+     * Codec that encodes/decodes CMS signed data.
+     *
+     * Syntax extensions to facilitate working with CMSSignedData are available via [[CMSSignedDataCodec.syntax]].
+     */
+    def signedData: Codec[CMSSignedData] = CMSSignedDataCodec()
+  }
 }
