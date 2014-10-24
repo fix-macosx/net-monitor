@@ -27,6 +27,7 @@
 package babelfish.codecs.http
 
 import java.nio.charset.StandardCharsets
+import scodec.Codec
 import scodec.codecs._
 
 /**
@@ -85,7 +86,7 @@ object HTTP {
   }.as[Response]
 
   /** Full HTTP log file */
-  val http = (
+  private[codecs] def http: Codec[HTTP] = (
     request :: response
   ).as[HTTP]
 }

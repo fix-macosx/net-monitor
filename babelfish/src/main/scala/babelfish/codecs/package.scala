@@ -32,6 +32,7 @@ package babelfish
 import java.io.{IOException, ByteArrayOutputStream}
 import java.nio.charset.Charset
 
+import babelfish.codecs.http.HTTP
 import coop.plausible.nx._
 import org.bouncycastle.cms.CMSSignedData
 import scodec.Codec
@@ -94,5 +95,15 @@ package object codecs {
      * Syntax extensions to facilitate working with CMSSignedData are available via [[CMSSignedDataCodec.syntax]].
      */
     def signedData: Codec[CMSSignedData] = CMSSignedDataCodec()
+  }
+
+  /**
+   * Codecs supporting SSLsplit's log format.
+   */
+  object sslsplit {
+    /**
+     * Codec that encodes/decodes SSLsplit HTTP log files.
+     */
+    def http: Codec[HTTP] = HTTP.http
   }
 }
