@@ -24,7 +24,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package babelfish.http
+package babelfish.codecs.http
 
 
 /**

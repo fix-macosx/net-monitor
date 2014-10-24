@@ -24,18 +24,17 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package babelfish.http
+package babelfish.codecs.http
 
 import scodec.bits.ByteVector
 
 /**
- * Request headers and body.
+ * Response headers and body.
  *
- * @param method HTTP Method.
- * @param path Path.
- * @param version Version.
- * @param host Host.
- * @param headers HTTP headers.
- * @param body Request body.
+ * @param version HTTP version.
+ * @param code HTTP response code.
+ * @param codeDescription HTTP reason phrase (e.g., 'OK').
+ * @param headers Response headers.
+ * @param body Response body.
  */
-case class Request (method: String, path: String, version: String, host: String, headers: Headers, body: ByteVector)
+case class Response (version: String, code: String, codeDescription: String, headers: Headers, body: ByteVector)

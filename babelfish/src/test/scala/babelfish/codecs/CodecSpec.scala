@@ -1,4 +1,4 @@
-package babelfish.common
+package babelfish.codecs
 
 import org.specs2.mutable.SpecificationLike
 import org.specs2.matcher.MatchResult

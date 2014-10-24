@@ -24,44 +24,47 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package babelfish.common
+package babelfish.codecs
 
 import java.util.Base64
-import java.util.Base64.{Encoder, Decoder}
 
 import scodec.Codec
 import scodec.bits.{BitVector, ByteVector}
 
 import scalaz.{-\/, \/-, \/}
 
-/**
- * Base64 Scheme
- */
-sealed trait Base64Scheme {
-  /** Return a new base64 encoder for this scheme */
-  def newEncoder: Base64.Encoder
 
-  /** Return a new base64 decoder for this scheme */
-  def newDecoder: Base64.Decoder
-}
 
 /**
  * Supported Base64 Schemes.
  */
-object Base64Scheme {
+object Base64Codec {
+  /**
+   * Base64 Scheme
+   */
+  sealed trait Scheme {
+    /** Return a new base64 encoder for this scheme */
+    private[Base64Codec] def newEncoder: Base64.Encoder
+
+    /** Return a new base64 decoder for this scheme */
+    private[Base64Codec] def newDecoder: Base64.Decoder
+  }
+
   /**
    * MIME Base64 Scheme
    */
-  object MIME extends Base64Scheme {
-    override def newEncoder: Encoder = Base64.getMimeEncoder
-    override def newDecoder: Decoder = Base64.getMimeDecoder
+  object MIME extends Scheme {
+    override def newEncoder = Base64.getMimeEncoder
+    override def newDecoder = Base64.getMimeDecoder
   }
 }
 
 /**
- * Base64 Codec
+ * Base64 Codec.
+ *
+ * @param scheme Base64 encoding scheme.
  */
-case class Base64Codec (scheme: Base64Scheme) extends Codec[ByteVector] {
+private[codecs] case class Base64Codec (scheme: Base64Codec.Scheme) extends Codec[ByteVector] {
   override def decode (bits: BitVector): \/[String, (BitVector, ByteVector)] = try {
     \/-((BitVector.empty, ByteVector(scheme.newDecoder.decode(bits.toByteArray))))
   } catch {

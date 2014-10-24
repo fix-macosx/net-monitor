@@ -31,7 +31,7 @@ import java.nio.charset.StandardCharsets
 import java.util.Base64
 import java.util.zip.{DataFormatException, Inflater}
 
-import babelfish.http.HTTP
+import babelfish.codecs.http.HTTP
 import org.bouncycastle.cms.{CMSProcessableByteArray, CMSException, CMSSignedData}
 import scodec.bits._
 import scodec.codecs.utf8
@@ -65,14 +65,13 @@ object Main extends App {
     println(s"Parsed $log")
     log.response.body.toArray
 
-    import common._
-    import common.Compression._
+    import codecs._
     import cms.CMS._
 
 
     val data = for (
       signedData <- signedData.bytes.complete.decode(log.response.body.toBitVector);
-      decoded <- Base64Codec(Base64Scheme.MIME).complete.decode(signedData._2.toBitVector);
+      decoded <- base64(Base64Codec.MIME).complete.decode(signedData._2.toBitVector);
       decompressed <- zlib.decode(decoded._2.toBitVector);
       jsonString <- utf8.decode(decompressed._2.toBitVector);
       json <- jsonString._2.parse

@@ -24,30 +24,45 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package babelfish.http
+package babelfish.codecs
 
-import java.util.Locale
+import java.nio.charset.StandardCharsets
 
+import org.specs2.mutable.Specification
+import scodec.bits.{BitVector, ByteVector}
+import scodec.codecs._
 
-/**
- * A set of HTTP headers.
- *
- * @param headers HTTP headers, in encoding/decoding order.
- */
-case class Headers (headers: List[Header]) {
-  /** Map of actual header values */
-  private lazy val headerTable: Map[String, List[String]] = headers.foldLeft(Map.empty[String, List[String]]) { (m, next) =>
-    val values = m.getOrElse(next.name.toLowerCase(Locale.US), List.empty) :+ next.value
-    m + ((next.name.toLowerCase(Locale.US), values))
+import scalaz.\/-
+
+class CodecsTest extends Specification with CodecSpec {
+  "base64 mime" should {
+    "roundtrip" in {
+      roundtrip(base64(Base64Codec.MIME), ByteVector("Hello, World".getBytes(StandardCharsets.UTF_8)))
+    }
   }
 
-  /** Return the content length, if known */
-  def contentLength: Either[String, Int] = {
-    val stringVal = headerTable.get("content-length").map(_.headOption).flatten
-    try {
-      stringVal.map(_.toInt).toRight("Missing `Content-Length' header")
-    } catch {
-      case nfe:NumberFormatException => Left(s"`Content-Length' value is not an integer: $stringVal")
+  "regex parsers" should {
+    "roundtrip" in {
+      roundtrip(regex(".*".r,  StandardCharsets.UTF_8), "Hello World")
+    }
+  }
+
+  "zlib" should {
+    "roundtrip" in {
+      roundtrip(zlib, ByteVector("Hello, World!".getBytes(StandardCharsets.UTF_8)))
+    }
+  }
+
+  "zeroOrMore" should {
+    "roundtrip" in {
+      roundtrip(zeroOrMore(ubyte(7)), List(1.toByte, 2.toByte, 3.toByte, 4.toByte))
+    }
+
+    "return at first failure" in {
+      val codec = zeroOrMore(constant(0xAB.toByte))
+      val \/-((remainder, decoded)) = codec.decode(BitVector(Array(0xAB.toByte, 0xAB.toByte, 0xBA.toByte)))
+      remainder.length must beEqualTo(8)
+      decoded.length must beEqualTo(2)
     }
   }
 }

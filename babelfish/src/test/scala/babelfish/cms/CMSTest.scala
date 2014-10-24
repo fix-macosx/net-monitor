@@ -29,7 +29,7 @@ package babelfish.cms
 import java.io.IOException
 import java.util
 
-import babelfish.common.CodecSpec
+import babelfish.codecs.CodecSpec
 import org.bouncycastle.cms.{CMSException, CMSSignedData}
 import org.specs2.mutable.Specification
 

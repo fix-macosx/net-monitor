@@ -24,18 +24,18 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package babelfish.common
+package babelfish.codecs.http
 
-import java.nio.charset.StandardCharsets
-
-import org.specs2.mutable.Specification
 import scodec.bits.ByteVector
 
-class Base64CodecTest extends Specification with CodecSpec {
-  "base64 mime" should {
-    "roundtrip" in {
-      roundtrip(Base64Codec(Base64Scheme.MIME), ByteVector("Hello, World".getBytes(StandardCharsets.UTF_8)))
-    }
-  }
-
-}
+/**
+ * Request headers and body.
+ *
+ * @param method HTTP Method.
+ * @param path Path.
+ * @param version Version.
+ * @param host Host.
+ * @param headers HTTP headers.
+ * @param body Request body.
+ */
+case class Request (method: String, path: String, version: String, host: String, headers: Headers, body: ByteVector)

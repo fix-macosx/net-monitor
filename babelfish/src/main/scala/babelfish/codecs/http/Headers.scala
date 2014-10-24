@@ -24,17 +24,30 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package babelfish.http
+package babelfish.codecs.http
 
-import scodec.bits.ByteVector
+import java.util.Locale
+
 
 /**
- * Response headers and body.
+ * A set of HTTP headers.
  *
- * @param version HTTP version.
- * @param code HTTP response code.
- * @param codeDescription HTTP reason phrase (e.g., 'OK').
- * @param headers Response headers.
- * @param body Response body.
+ * @param headers HTTP headers, in encoding/decoding order.
  */
-case class Response (version: String, code: String, codeDescription: String, headers: Headers, body: ByteVector)
+case class Headers (headers: List[Header]) {
+  /** Map of actual header values */
+  private lazy val headerTable: Map[String, List[String]] = headers.foldLeft(Map.empty[String, List[String]]) { (m, next) =>
+    val values = m.getOrElse(next.name.toLowerCase(Locale.US), List.empty) :+ next.value
+    m + ((next.name.toLowerCase(Locale.US), values))
+  }
+
+  /** Return the content length, if known */
+  def contentLength: Either[String, Int] = {
+    val stringVal = headerTable.get("content-length").map(_.headOption).flatten
+    try {
+      stringVal.map(_.toInt).toRight("Missing `Content-Length' header")
+    } catch {
+      case nfe:NumberFormatException => Left(s"`Content-Length' value is not an integer: $stringVal")
+    }
+  }
+}
