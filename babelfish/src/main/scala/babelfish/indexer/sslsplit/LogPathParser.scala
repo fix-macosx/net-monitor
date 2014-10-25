@@ -83,23 +83,26 @@ private[sslsplit] class LogPathParser (val directory: Option[Path], val fileName
   private def IPv4Octet = rule { (1 to 3).times(Digit) }
 
   /** IPv4 address string */
-  private def IPv4 = rule { capture(4.times(IPv4Octet).separatedBy(".")) ~>
-    { (str:String) =>
-      assertNonThrows[UnknownHostException](InetAddress.getByName(str))
-    }
-  }
+  private def IPv4String = rule { 4.times(IPv4Octet).separatedBy(".") }
 
   /** Single word of IPv6 address */
   private def IPv6Word = rule { (0 to 4).times(HexDigit) }
 
   /** IPv6 address string */
-  private def IPv6 = rule { capture((2 to 16).times(IPv6Word).separatedBy(":")) ~> { (str:String) =>
-      assertNonThrows[UnknownHostException](InetAddress.getByName(str))
+  private def IPv6String = rule { (2 to 16).times(IPv6Word).separatedBy(":") }
+
+  /** IP (v4|v6) address */
+  private def IP = rule { capture(IPv4String | IPv6String) ~> { (str:String) =>
+    val host = try {
+      Some(InetAddress.getByName(str))
+    } catch {
+      case uhe:UnknownHostException => None
     }
-  }
+    test(host.isDefined) ~ push(host.get)
+  }}
 
   /** Host address and port */
-  private def SockAddr: Rule1[InetSocketAddress] = rule { "[" ~ (IPv4 | IPv6) ~ "]:" ~ Port ~> { (addr: InetAddress, port: Int) =>
+  private def SockAddr: Rule1[InetSocketAddress] = rule { "[" ~ IP ~ "]:" ~ Port ~> { (addr: InetAddress, port: Int) =>
       new InetSocketAddress(addr, port)
     }
   }
