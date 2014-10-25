@@ -121,6 +121,8 @@ object RegexCodec {
    * Regex syntax extensions.
    */
   object syntax {
+    import scala.language.implicitConversions
+    
     /**
      * Provides implicit conversion from a regex to a regex-based codec, fetching
      * the charset from an available implicit Charset value.
