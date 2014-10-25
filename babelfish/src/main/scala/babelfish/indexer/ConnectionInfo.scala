@@ -27,12 +27,26 @@
 
 package babelfish.indexer
 
+import java.net.InetSocketAddress
 import java.nio.file.Path
+import java.time.Instant
 
 /**
- * Net Monitor log paths.
- * 
- * @param sslLogs Path to TCP/SSL logs gathered by SSLsplit.
- * @param udpLogs Path to UDP/ICMP/etc logs gathered by pf+tcpdump.
+ * Protocol and application information associated with a connection or stateless packet.
  */
-case class NetMonitorLogs (sslLogs: Path, udpLogs: Path)
+trait ConnectionInfo {
+  /** The time at which the stateful connection was initiated, or the time at which the packet was sent. */
+  def timestamp: Instant
+
+  /** The full path of the application that initiated the connection, if known. */
+  def application: Option[Path]
+
+  /** The name or uid responsible that initiated the connection, if known. */
+  def user: Option[String]
+
+  /** The source address of the connection. */
+  def source: InetSocketAddress
+
+  /** The destination address of the connection. */
+  def destination: InetSocketAddress
+}

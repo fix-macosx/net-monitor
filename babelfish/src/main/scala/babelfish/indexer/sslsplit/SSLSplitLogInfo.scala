@@ -31,6 +31,7 @@ import java.net.InetSocketAddress
 import java.nio.file.Path
 import java.time.Instant
 
+import babelfish.indexer.ConnectionInfo
 import org.parboiled2.Parser
 
 import scalaz.{-\/, \/-, \/}
@@ -44,7 +45,7 @@ import scalaz.{-\/, \/-, \/}
  * @param source The source address of the connection.
  * @param destination The destination address of the connection.
  */
-case class SSLSplitLogInfo (timestamp: Instant, application: Option[Path], user: Option[String], source: InetSocketAddress, destination: InetSocketAddress)
+case class SSLSplitLogInfo (timestamp: Instant, application: Option[Path], user: Option[String], source: InetSocketAddress, destination: InetSocketAddress) extends ConnectionInfo
 
 object SSLSplitLogInfo {
   /**
