@@ -11,6 +11,8 @@ libraryDependencies ++= Seq(
   "org.bouncycastle"  %  "bcmail-jdk15on" % "1.51",
   "com.google.guava"  %  "guava"          % "18.0",
   "com.typesafe.slick"%% "slick"          % "2.1.0",
+  "com.h2database"    %  "h2"             % "1.3.175",
+  "org.xerial"        %  "sqlite-jdbc"    % "3.7.2",
   "coop.plausible.nx" %% "no-exceptions"  % "1.0.1",
   "org.parboiled"     %% "parboiled"      % "2.0.1",
   "io.argonaut"       %% "argonaut"       % "6.1-M4",
