@@ -34,6 +34,8 @@ import babelfish.codecs.http.HTTP
 import scodec.bits._
 import scodec.codecs.utf8
 
+import babelfish.codecs._
+
 import scalaz.Scalaz._
 import scalaz._
 
@@ -50,7 +52,7 @@ object Main extends App {
   }
 
   val result = input.right.flatMap { bits =>
-    val result = HTTP.http.complete.decode(bits)
+    val result = sslsplit.http.complete.decode(bits)
     result.toEither
   }
 
@@ -58,14 +60,13 @@ object Main extends App {
   result.right.foreach { rl =>
     val (_, log) = rl
     println(s"Parsed $log")
-    log.response.body.toArray
 
     import babelfish.codecs._
     import babelfish.codecs.CMSSignedDataCodec.syntax._
 
 
     val data = for (
-      signedData <- cms.signedData.complete.decode(log.response.body.toBitVector).flatMap(_._2.signedBytes);
+      signedData <- cms.signedData.complete.decode(log.response.body.elements.headOption.map(_.toBitVector).getOrElse(BitVector.empty)).flatMap(_._2.signedBytes);
       decoded <- base64(Base64Codec.MIME).complete.decode(BitVector(signedData));
       decompressed <- zlib.decode(decoded._2.toBitVector);
       jsonString <- utf8.decode(decompressed._2.toBitVector);
