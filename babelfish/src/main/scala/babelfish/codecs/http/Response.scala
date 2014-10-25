@@ -37,4 +37,4 @@ import scodec.bits.ByteVector
  * @param headers Response headers.
  * @param body Response body.
  */
-case class Response (version: String, code: String, codeDescription: String, headers: Headers, body: ByteVector)
+case class Response (version: String, code: String, codeDescription: String, headers: Headers, body: Body)

@@ -28,7 +28,10 @@ package babelfish.codecs.http
 
 import java.nio.charset.StandardCharsets
 import scodec.Codec
+import scodec.bits.ByteVector
 import scodec.codecs._
+
+import scalaz.{-\/, \/-}
 
 /**
  * An HTTP transaction logged by SSLsplit.
@@ -53,26 +56,53 @@ object HTTP {
   /** Vertical whitespace */
   private val vs = """(\r\n|\r|\n)+""".r.unit("\r\n")
 
+  /** Single CRLF/CR/LF */
+  private val crlf = """(\r\n|\r|\n)""".r.unit("\r\n")
+
   /** HTTP header */
   private val header = """[^:\r\n]+""".r :: """:\s*""".r.unit(": ") ~> """[^\r\n]*""".r
 
+  /** Zero or more headers */
+  private val headers = zeroOrMore ({
+    header <~ crlf
+  }.as[Header]).as[Headers]
+
+  /** HTTP chunked encoding */
+  private val chunked = {
+    def fromHex (str: String): Int = {
+      if (str.startsWith("0x") && str.startsWith("0X")) {
+        fromHex(str.drop(2))
+      } else {
+        Integer.parseInt(str, 16)
+      }
+    }
+
+    val lengthHeader = """(0[xX])?[0-9A-Fa-f]+""".r.xmap(fromHex, (i:Int) => Integer.toHexString(i)) <~ crlf
+    lengthHeader.flatZip { size => bytes(size) }.xmap(
+      _._2,
+      (data:ByteVector) => (data.length, data)
+    ) <~ crlf
+  }
+
+  private def bodyData (length: Int): Codec[Body] = bytes(length).xmap(Body.Content, b => b.elements.headOption.getOrElse(ByteVector.empty))
+
   /** HTTP request/response body */
-  private def body (headers: Headers) = vs ~> (headers.contentLength match {
-    case Left(msg) =>
-      /* Try parsing the HTTP message as if the body is zero-length */
-      bytes(0)
-    case Right(length) => bytes(length)
-  })
+  private def body (headers: Headers): Codec[Body] = crlf ~> {
+    headers.contentInfo match {
+      case \/-(ContentLength(length)) => bodyData(length)
+      case \/-(ContentChunked) => zeroOrMore(chunked).xmap(Body.Chunked, b => b.elements)
+      case \/-(ContentUnknown) => bodyData(0)
+      case -\/(msg) => fail(s"Could not determine content info for HTTP body: $msg")
+    }
+  }
 
   /** Request */
   private val request = {
     """^(POST|PUT|GET|HEAD|DELETE|OPTIONS|TRACE|CONNECT)""".r ::
       ws ~> """\S+""".r ::
       ws ~> """HTTP\/[0-9.]+""".r ::
-      vs ~> """Host:\s+""".r.unit("Host: ") ~> """\S+""".r ::
-      zeroOrMore ({
-        vs ~> header
-      }.as[Header]).as[Headers].flatZipHList(body)
+      crlf ~> """Host:\s+""".r.unit("Host: ") ~> """\S+""".r ::
+      crlf ~> headers.flatZipHList(body)
   }.as[Request]
 
   /** Response */
@@ -80,9 +110,7 @@ object HTTP {
     """HTTP\/[0-9.]+""".r ::
       ws ~> """[0-9]+""".r ::
       ws ~> """[^\r\n]+""".r ::
-      zeroOrMore ({
-        vs ~> header
-      }.as[Header]).as[Headers].flatZipHList(body)
+      crlf ~> headers.flatZipHList(body)
   }.as[Response]
 
   /** Full HTTP log file */

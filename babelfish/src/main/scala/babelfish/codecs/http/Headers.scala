@@ -28,6 +28,31 @@ package babelfish.codecs.http
 
 import java.util.Locale
 
+import scala.annotation.tailrec
+import scalaz.\/
+import scalaz._, Scalaz._
+
+/**
+ * HTTP content information (content length, transfer encoding).
+ */
+sealed trait ContentInfo
+
+/**
+ * The body of this request (or response) is not chunked.
+ *
+ * @param length The total content length.
+ */
+case class ContentLength (length: Int) extends ContentInfo
+
+/**
+ * The body of this request is chunked.
+ */
+case object ContentChunked extends ContentInfo
+
+/**
+ * No content information was supplied in the HTTP headers.
+ */
+case object ContentUnknown extends ContentInfo
 
 /**
  * A set of HTTP headers.
@@ -41,13 +66,33 @@ case class Headers (headers: List[Header]) {
     m + ((next.name.toLowerCase(Locale.US), values))
   }
 
-  /** Return the content length, if known */
-  def contentLength: Either[String, Int] = {
-    val stringVal = headerTable.get("content-length").map(_.headOption).flatten
-    try {
-      stringVal.map(_.toInt).toRight("Missing `Content-Length' header")
-    } catch {
-      case nfe:NumberFormatException => Left(s"`Content-Length' value is not an integer: $stringVal")
+  /** Return the content info; this is based on the Content-Length and Transfer-Encoding headers */
+  def contentInfo: String \/ ContentInfo = {
+    val handlers = List[(String, String => String \/ ContentInfo)] (
+      ("transfer-encoding", (value: String) => value.toLowerCase(Locale.US) match {
+        case "chunked" => \/-(ContentChunked)
+        case _ => -\/(s"Unknown Transfer-Encoding `$value`")
+      }),
+
+      ("content-length", (value:String) => try {
+        \/-(ContentLength(value.toInt))
+      } catch {
+        case nfe:NumberFormatException => -\/(s"`Content-Length' value is not an integer: $value")
+      })
+    )
+
+    @tailrec def loop (handlers: List[(String, String => String \/ ContentInfo)]): String \/ ContentInfo = handlers match {
+      case (headerName, f) :: tail =>
+        val result = headerTable.get(headerName).flatMap(_.headOption).toRightDisjunction(s"$headerName not found").flatMap(f)
+        if (result.isLeft) {
+          loop(tail)
+        } else {
+          result
+        }
+
+      case Nil => \/-(ContentUnknown)
     }
+
+    loop(handlers)
   }
 }

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2014 Landon Fuller <landon@landonf.org>
+ *
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person
@@ -29,13 +30,29 @@ package babelfish.codecs.http
 import scodec.bits.ByteVector
 
 /**
- * Request headers and body.
- *
- * @param method HTTP Method.
- * @param path Path.
- * @param version Version.
- * @param host Host.
- * @param headers HTTP headers.
- * @param body Request body.
+ * HTTP body types.
  */
-case class Request (method: String, path: String, version: String, host: String, headers: Headers, body: Body)
+sealed trait Body {
+  /** The individual content elements in this HTTP body */
+  def elements: List[ByteVector]
+}
+
+object Body {
+  /**
+   * HTTP non-chunked body.
+   *
+   * @param data HTTP body data.
+   */
+  case class Content (data: ByteVector) extends Body {
+    override def elements = List(data)
+  }
+
+  /**
+   * HTTP chunked body.
+   *
+   * @param chunks Chunks encoded in this HTTP body.
+   */
+  case class Chunked (chunks: List[ByteVector]) extends Body {
+    override def elements = chunks
+  }
+}
