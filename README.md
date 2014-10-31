@@ -47,3 +47,9 @@ To update the embedded copy of SSLsplit:
 
 * Clone and build [fix-macosx/sslsplit](https://github.com/fix-macosx/sslsplit) locally.
 * Update NM's standalone sslsplit binary via `sslsplit-create-standalone.sh`, e.g., `sslsplit-create-standalone.sh ~/sslsplit/sslsplit ~/net-monitor`
+
+## Uninstalling
+
+* restore your old packet filter config file, the install script will back it up in a file called /etc/pf.conf.$dateofinstall
+* check the install script for all the plist settings, you want to undo all the writes and delete these settings (launchctl unload and disable)
+* remove the executable: /usr/local/lib/sslsplit and the logs /var/log/udp-monitor
