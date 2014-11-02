@@ -11,7 +11,7 @@ libraryDependencies ++= Seq(
   "org.bouncycastle"  %  "bcmail-jdk15on" % "1.51",
   "org.apache.tika"   %  "tika-core"      % "1.6",
   "org.apache.tika"   %  "tika-parsers"   % "1.6",
-  "org.jgrapht"       %  "jgrapht-core"   % "0.9.0",
+  "org.sat4j"         %  "org.sat4j.core" % "2.3.1",
   "com.google.guava"  %  "guava"          % "18.0",
   "com.typesafe.slick"%% "slick"          % "2.1.0",
   "com.h2database"    %  "h2"             % "1.3.175",
