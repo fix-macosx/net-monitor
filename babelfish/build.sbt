@@ -5,6 +5,7 @@ version := "1.0"
 scalaVersion := "2.11.2"
 
 libraryDependencies ++= Seq(
+  "org.spire-math"    %% "spire"          % "0.8.2",
   "org.typelevel"     %% "scodec-core"    % "1.3.1",
   "org.bouncycastle"  %  "bcprov-jdk15on" % "1.51",
   "org.bouncycastle"  %  "bcpkix-jdk15on" % "1.51",
