@@ -19,11 +19,11 @@ By default, NM generates the following logs:
 * TCP/SSL: /var/log/sslsplit/<application path>/<time>-<src>-<dest>.log
 * UDP/other: /var/log/udp-monitor/\*.pcap
 
-NM relies on [local patches](https://github.com/fix-macosx/sslsplit) to
-[SSLsplit](http://www.roe.ch/SSLsplit) to provide TLS introspection.
+NM relies on [SSLsplit](http://www.roe.ch/SSLsplit) to provide TLS introspection; all
+of our previous [local patches](https://github.com/fix-macosx/sslsplit) have been
+integrated upstream.
 
-We're actively pushing our patches upstream, and additional contributions
-to improve accuracy/transparency of the collected data are always
+Additional contributions to improve accuracy/transparency of the collected data are always
 very welcome.
 
 ## Caveats
@@ -45,5 +45,5 @@ may be found in `conf/`.
 
 To update the embedded copy of SSLsplit:
 
-* Clone and build [fix-macosx/sslsplit](https://github.com/fix-macosx/sslsplit) locally.
+* Clone and build [sslsplit](https://github.com/droe/sslsplit) locally.
 * Update NM's standalone sslsplit binary via `sslsplit-create-standalone.sh`, e.g., `sslsplit-create-standalone.sh ~/sslsplit/sslsplit ~/net-monitor`
