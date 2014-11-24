@@ -23,6 +23,7 @@
 		<string>root</string>
 		<string>-m</string>
 		<string>_packets</string>
+		<string>-i</string>
 		<string>-F</string>
 		<string>/var/log/sslsplit/%X/%T-%u-%s-%d.log</string>
 		<string>tcp</string>
