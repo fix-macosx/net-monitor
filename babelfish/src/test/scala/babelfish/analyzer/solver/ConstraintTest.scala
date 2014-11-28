@@ -26,21 +26,23 @@
 
 package babelfish.analyzer.solver
 
-/**
- * A solver constraint.
- */
-sealed trait Constraint
+import org.specs2.mutable.Specification
 
-/**
- * Supported constraint types.
- */
-object Constraint {
-  /**
-   * An equality constraint.
-   *
-   * @param lhs The left-hand operand.
-   * @param rhs The right-hand operand.
-   * @tparam T The type over which this constraint operates.
-   */
-  case class Eq[T] (lhs: Term[T], rhs: Term[T]) extends Constraint
+case class Name (first: String, last: String)
+
+class ConstraintTest extends Specification {
+  "HList Constraints" should {
+    "map to case classes" in {
+      import Constraint._
+
+      val constraint = (
+        Eq(IdentityDomain(Set("First1", "First2"))) ::
+        Eq(Literal("Last1"))
+      ).as[Name]
+
+      val firstVar: Variable[String] = constraint(_.first)
+
+      true must beTrue
+    }
+  }
 }

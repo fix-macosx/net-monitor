@@ -27,24 +27,9 @@
 package babelfish.analyzer.solver
 
 /**
- * A term, representing either a literal value or a variable for which a solution is necessary.
- *
- * @tparam T The type of value represented by this term.
- */
-sealed trait Term[T]
-
-/**
- * A literal value.
- *
- * @param value The value represented by this type.
- * @tparam T The value's type.
- */
-case class Literal[T] (value: T) extends Term[T]
-
-/**
  * A variable for which a solution is necessary.
  *
  * @param domain The value domain of this variable.
  * @tparam T The type of value represented by this variable.
  */
-case class Variable[T] (domain: ValueDomain[T]) extends Term[T]
+case class Variable[T] (/* TODO: domain: Domain[T] */)

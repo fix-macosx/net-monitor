@@ -26,9 +26,6 @@
 
 package babelfish.analyzer.solver
 
-// TODO: Replace with Variable
-case class Var[T] ()
-
 /**
  * Private macro implementations.
  */
@@ -75,7 +72,7 @@ object Macros {
         }.right
     ) yield Apply(
       TypeApply(
-        Select(Ident(weakTypeOf[Var[_]].typeSymbol.companion), TermName("apply")),
+        Select(Ident(weakTypeOf[Variable[_]].typeSymbol.companion), TermName("apply")),
         List(Ident(fieldMethod.returnType.typeSymbol))
       ),
       List()
@@ -86,7 +83,7 @@ object Macros {
       case Right(application) => application
     }
 
-    c.Expr[Var[V]](tree)
+    c.Expr[Variable[V]](tree)
   }
 
   /**
@@ -112,7 +109,7 @@ object Macros {
         TypeTree(),
         Apply(
           TypeApply(
-            Select(Ident(weakTypeOf[Var[_]].typeSymbol.companion), TermName("apply")),
+            Select(Ident(weakTypeOf[Variable[_]].typeSymbol.companion), TermName("apply")),
             List(Ident(accessor.returnType.typeSymbol))
           ),
           List()
