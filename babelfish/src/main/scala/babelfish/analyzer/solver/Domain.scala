@@ -52,16 +52,36 @@ case class IdentityDomain[A] (values: Set[A]) extends Domain[A]
 case class Literal[A] (value: A) extends Domain[A]
 
 /**
- * A solver constraint over values of type `A`
+ * A solver constraint over values of type [[T]].
  *
- * @tparam A The type of values over which this constraint is defined.
+ * @tparam T The type of values over which this constraint is defined.
  */
-sealed trait Constraint[A] extends Domain[A] {
+sealed trait Constraint[T] extends Domain[T] {
+  import scala.language.experimental.macros
+
   /**
-   * Return a new [[CaseClassConstraint]] of type [[T]], providing case class-based mapping of the set
-   * of constraints defined by this instance.
+   * Return a new [[Constraint]] of type [[U]] based on an isomorphism between constraints of type
+   * [[T]] and [[U]].
    */
-  def as[T] (implicit map: CaseClassConstraintMapper[A, T]): CaseClassConstraint[T] = map(this)
+  def as[U] (implicit map: ConstraintIsomorphism[T, U]): Constraint[U] = map(this)
+  
+  /**
+   * Return the [[Constraint]] instance corresponding to a field accessor on
+   * type [[T]] accessed in `expr`.
+   *
+   * If type [[T]] is not a case class, or `expr` references an invalid case class
+   * field, compilation will fail.
+   *
+   * @param expr An expression of the form `(c:T) => c.field`.
+   * @tparam U The field type.
+   */
+  def field[U] (expr: T => U): Variable[U] = macro Macros.var_impl[T, U]
+
+  /**
+   * EXPERIMENTAL: Return a structural type vending [[Variable]] field accessors
+   * corresponding to all case class accessors defined on [[T]].
+   */
+  private[solver] def fields: AnyRef = macro Macros.vars_impl[T]
 }
 
 /**
@@ -113,35 +133,10 @@ object Constraint {
   }
 }
 
-
 /**
- * A [[Constraint]] that represents a set of constraints over
- * the total set of a case class fields defined by [[T]].
- *
- * @tparam T A case class type.
- */
-case class CaseClassConstraint[T] () extends Constraint[T] {
-  import scala.language.experimental.macros
-
-  /**
-   * Return the [[Variable]] instance corresponding to the field accessor
-   * accessed in `expr`.
-   *
-   * @param expr An expression of the form `(c:T) => c.field`.
-   * @tparam U The field type.
-   */
-  def apply[U] (expr: T => U): Variable[U] = macro Macros.var_impl[T, U]
-
-  /**
-   * EXPERIMENTAL: Return a structural type vending [[Variable]] field accessors
-   * corresponding to all case class accessors defined on `T`.
-   */
-  private[solver] def vars: AnyRef = macro Macros.vars_impl[T]
-}
-
-/**
- * An effectively bidirectional mapping (i.e. an isomorphism) between a [[Constraint]] that
- * covers a set of values to a [[CaseClassConstraint]] comprised of compatible values.
+ * An effectively bidirectional mapping (i.e. an isomorphism) between [[Constraint]] instances
+ * with compatible shapes; for example, between an HList of type `String :: Int :: HNil` and
+ * a case class with a constructor of type `String, Int`
  *
  * @tparam L The value type of the [[Constraint]] to which this type class instance applies.
  * @tparam T The case class type to which constraints of type [[L]] will be mapped.
@@ -149,26 +144,26 @@ case class CaseClassConstraint[T] () extends Constraint[T] {
  * ''Credit: This design is based on Michael Pilquist's [https://github.com/scodec/scodec scodec] case class mapping.''
  */
 @implicitNotFound("""Could not find an instance of the CaseClassConstraintMapper type class providing conversion to/from ${L} and ${T}. A type class instance is automatically provided for case classes and HLists of the same shape.""")
-trait CaseClassConstraintMapper[L, T] {
+trait ConstraintIsomorphism[L, T] {
   /**
-   * Return the [[CaseClassConstraint]] for the given [[Constraint]].
+   * Return a constraint of type [[T]] for the given constraint of type [[L]].
    *
-   * @param ca A constraint over a set of types compatible with [[T]].
+   * @param ca A constraint for which an isomorphism exists with a constrain of type [[T]].
    */
-  def apply (ca: Constraint[L]): CaseClassConstraint[T]
+  def apply (ca: Constraint[L]): Constraint[T]
 }
 
 /**
- * Default [[CaseClassConstraintMapper]] implicits.
+ * Default [[ConstraintIsomorphism]] implicits.
  */
-object CaseClassConstraintMapper {
+object ConstraintIsomorphism {
   import scala.language.implicitConversions
 
   /**
    * Given a [[Constraint]] over type [[L]] and an isomorphism between [[L]] and [[T]], return
-   * the corresponding [[CaseClassConstraintMapper]] from [[L]] to [[T]].
+   * the corresponding [[ConstraintIsomorphism]] from [[L]] to [[T]].
    *
-   * This supports mapping of `HList` constraints to compatible case classes.
+   * This provides automatic mapping of `HList` constraints to compatible case classes.
    *
    * @param gen A Shapeless Generic that may be used to map to and from [[L]]/[[T]].
    * @param lToR Proof that type [[L]] is equal to type [[Repr]].
@@ -178,10 +173,10 @@ object CaseClassConstraintMapper {
    * @tparam T The case class type for which a Shapeless Generic isomorphism exists.
    * @tparam Repr A type equivalent to [[L]] over which the generic isomorphism is defined.
    */
-  implicit def makeConstraintAsMapper[L, Repr, T] (implicit gen: Generic.Aux[L, Repr], lToR: L =:= Repr, rToL: Repr =:= L): CaseClassConstraintMapper[L, T]  = new CaseClassConstraintMapper[L, T] {
-    override def apply (ca: Constraint[L]): CaseClassConstraint[T] = {
+  implicit def constraintAs[L, Repr, T] (implicit gen: Generic.Aux[L, Repr], lToR: L =:= Repr, rToL: Repr =:= L): ConstraintIsomorphism[L, T]  = new ConstraintIsomorphism[L, T] {
+    override def apply (ca: Constraint[L]): Constraint[T] = {
       // TODO - We need to use `gen`'s `from` and `to` functions to actually create our case class instances.
-      new CaseClassConstraint[T]()
+      new Constraint[T]() { }
     }
   }
 }

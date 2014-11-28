@@ -40,7 +40,7 @@ class ConstraintTest extends Specification {
         Eq(Literal("Last1"))
       ).as[Name]
 
-      val firstVar: Variable[String] = constraint(_.first)
+      val firstVar: Variable[String] = constraint.field(_.first)
 
       true must beTrue
     }
