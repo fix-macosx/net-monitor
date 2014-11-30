@@ -143,7 +143,7 @@ object Constraint {
  *
  * ''Credit: This design is based on Michael Pilquist's [https://github.com/scodec/scodec scodec] case class mapping.''
  */
-@implicitNotFound("""Could not find an instance of the CaseClassConstraintMapper type class providing conversion to/from ${L} and ${T}. A type class instance is automatically provided for case classes and HLists of the same shape.""")
+@implicitNotFound("""Could not find a ConstraintIsomorphism type class providing conversion to/from ${L} and ${T}. A type class instance is automatically provided for conversion between case classes and HLists of the same shape.""")
 trait ConstraintIsomorphism[L, T] {
   /**
    * Return a constraint of type [[T]] for the given constraint of type [[L]].
